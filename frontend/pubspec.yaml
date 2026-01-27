@@ -26,13 +26,6 @@ flutter_launcher_icons:
   ios: true
   image_path: assets/icons/app_icon.png
 
-flutter_native_splash:
-  color: "#ffffff"
-  image: assets/icons/app_icon.png
-  android_12:
-    color: "#ffffff"
-    image: assets/icons/app_icon.png
-
 flutter:
   uses-material-design: true
 

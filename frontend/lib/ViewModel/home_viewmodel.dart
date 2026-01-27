@@ -39,9 +39,9 @@ class HomeViewModel extends ChangeNotifier {
     await stopMusic();
     int random = Random().nextInt(100);
 
-    if (random > 25){
+    if (random < 70){
       await playSong(songRepository.solidStigma);
-    } else if (random > 5){
+    } else if (random < 95){
       await playSong(songRepository.reneeLeBlanc);
     } else {
       await playSong(songRepository.reneeLeGoon);

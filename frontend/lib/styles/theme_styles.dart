@@ -14,41 +14,43 @@ class SongStyle {
   });
 
   static const defaultStyle = SongStyle(
-    backgroundColor: Color(0xFF2C003E),
-    gradientColors: [Color(0xFF2C003E), Colors.black],
-    buttonColor: Color(0x00000000), 
+    backgroundColor: Color(0xFFFCFF61), 
+      gradientColors: [
+        Color(0xFFFCFF61), 
+        Color(0xFFF4C34F), 
+      ],
+    buttonColor: Color(0xFFFFAA00), 
   );
 
   static final Map<String, SongStyle> _styles = {
+    
     'stigma': const SongStyle(
-      backgroundColor: Color(0xFF121212), 
-      
+      backgroundColor: Color(0x33000000), 
       gradientColors: [
-        Color(0xFF2C2C2C), 
-        Color(0xFF080808), 
+        Color(0xFF0D1111), 
+        Color(0xFF000000),
       ],
-  
-      buttonColor: Color.fromARGB(255, 126, 108, 84), 
+      buttonColor: Color(0xFF4F635B), 
     ),
     'leblanc': const SongStyle(
       backgroundColor: Color(0xFF1A0505),
       gradientColors: [
-        Color(0xFF2B0000),
-        Color(0xFF4A0A0A),
+      Color(0xFFFF0000), 
+      Color(0xFF3D0000), 
       ],
       buttonColor: Color(0xFFFF3C38),
       textColor: Colors.white,
     ),
     'legoon': const SongStyle(
-      backgroundColor: Color(0xFF1A0A00),
+      backgroundColor: Color(0xFF001524), 
       gradientColors: [
-        Color(0xFF2B1200),
-        Color(0xFF5A2600),
+        Color(0xFF00A8E8), 
+        Color(0xFF003459), 
       ],
-      buttonColor: Color(0xFFFF7A00),
+      buttonColor: Color(0xFF00F5D4), 
       textColor: Colors.white,
     ),
-  };
+      };
 
   static SongStyle getStyle(String themeName) {
     return _styles[themeName] ?? defaultStyle;

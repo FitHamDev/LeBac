@@ -45,6 +45,7 @@ class _SpinningRecordButtonState extends State<SpinningRecordButton> with Single
   @override
   Widget build(BuildContext context) {
     final isPlaying = widget.viewModel.currentSong.coverImage.isNotEmpty;
+    
     if (isPlaying && !_controller.isAnimating) _controller.repeat();
     if (!isPlaying && _controller.isAnimating) _controller.reset();
 
@@ -52,21 +53,21 @@ class _SpinningRecordButtonState extends State<SpinningRecordButton> with Single
       alignment: Alignment.center,
       children: [
         if (isPlaying) ...List.generate(3, (i) => _buildRipple(i * 0.33)), 
-        ElevatedButton(
-          onPressed: () { _toggleDirection(); widget.viewModel.playRandomSong(); },
-          style: ElevatedButton.styleFrom(shape: const CircleBorder(), backgroundColor: widget.style.buttonColor),
-          child: AnimatedBuilder(
-            animation: _controller,
-            builder: (_, child) => Transform.rotate(
-              angle: (_baseTurns + (_controller.value * _direction)) * 2 * 3.14159, 
-              child: child
-            ),
-            child: CircleAvatar(
-              radius: 120,
-              backgroundImage: isPlaying ? AssetImage(widget.viewModel.currentSong.coverImage) : null,
-              backgroundColor: widget.style.buttonColor,
-            ),
-          ),
+        GestureDetector(
+          onTap: () { _toggleDirection(); widget.viewModel.playRandomSong(); },
+          child:
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (_, child) => Transform.rotate(
+                angle: (_baseTurns + (_controller.value * _direction)) * 2 * 3.14159, 
+                child: child
+              ),
+              child: CircleAvatar(
+                radius: 120,
+                backgroundImage: AssetImage(widget.viewModel.currentSong.coverImage),
+                backgroundColor: Colors.transparent,
+              ),
+            )
         ),
       ],
     );

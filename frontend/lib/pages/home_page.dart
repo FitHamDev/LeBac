@@ -13,8 +13,20 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   HomeViewModel viewModel = HomeViewModel();
+  late SongStyle _lastStyle;
   
-
+  @override
+  void initState() {
+    super.initState();
+    _lastStyle = SongStyle.getStyle('stigma');
+    _autoPlayFirstSong();
+  }
+  
+  Future<void> _autoPlayFirstSong() async {
+    if (viewModel.currentSong.coverImage.isEmpty) {
+      await viewModel.playRandomSong();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +34,10 @@ class _HomePageState extends State<HomePage> {
       listenable: viewModel,
       builder: (context, child) {
         final currentStyle = SongStyle.getStyle(viewModel.currentSong.theme);
+        if (viewModel.currentSong.coverImage.isNotEmpty) {
+          _lastStyle = currentStyle;
+        }
+        final displayStyle = _lastStyle;
 
         return Scaffold(
           body: Stack(
@@ -31,9 +47,9 @@ class _HomePageState extends State<HomePage> {
                   duration: const Duration(milliseconds: 500),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: currentStyle.gradientColors,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                      colors: displayStyle.gradientColors,
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
                   ),
                 ),
