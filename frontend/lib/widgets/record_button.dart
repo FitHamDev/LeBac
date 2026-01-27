@@ -54,7 +54,7 @@ class _SpinningRecordButtonState extends State<SpinningRecordButton> with Single
       children: [
         if (isPlaying) ...List.generate(3, (i) => _buildRipple(i * 0.33)), 
         GestureDetector(
-          onTap: () { _toggleDirection(); widget.viewModel.playRandomSong(); },
+          onTap: widget.viewModel.isOnCooldown ? null : () { _toggleDirection(); widget.viewModel.playRandomSong(); },
           child:
             AnimatedBuilder(
               animation: _controller,

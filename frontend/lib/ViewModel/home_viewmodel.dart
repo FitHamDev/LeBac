@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -13,16 +14,37 @@ class HomeViewModel extends ChangeNotifier {
 
   late Song _currentSong = songRepository.none;
   Song get currentSong => _currentSong;
+  
+  bool _isOnCooldown = false;
+  bool get isOnCooldown => _isOnCooldown;
+  Timer? _cooldownTimer;
 
   Future<void> playSong(Song song) async {
     try {
       await player.stop(); 
-      await player.play(AssetSource(song.sound));
       _currentSong = song;
       notifyListeners();
+      unawaited(player.play(AssetSource(song.sound)));
+      
+      // Start 3-second cooldown for LeBlanc or LeGoon
+      if (song.theme == 'leblanc' || song.theme == 'legoon') {
+        _isOnCooldown = true;
+        notifyListeners();
+        _cooldownTimer?.cancel();
+        _cooldownTimer = Timer(const Duration(seconds: 3), () {
+          _isOnCooldown = false;
+          notifyListeners();
+        });
+      }
     } catch (e) {
       debugPrint("Error playing song: $e");
     }
+  }
+  
+  @override
+  void dispose() {
+    _cooldownTimer?.cancel();
+    super.dispose();
   }
   
   Future<void> stopMusic() async {
@@ -37,13 +59,15 @@ class HomeViewModel extends ChangeNotifier {
   
   Future<void> playRandomSong() async {
     int random = Random().nextInt(100);
+    Song nextSong;
 
-    if (random < 70){
-      await playSong(songRepository.solidStigma);
+    if (random < 75){
+      nextSong = songRepository.solidStigma;
     } else if (random < 95){
-      await playSong(songRepository.reneeLeBlanc);
+      nextSong = songRepository.reneeLeBlanc;
     } else {
-      await playSong(songRepository.reneeLeGoon);
+      nextSong = songRepository.reneeLeGoon;
     }
+    await playSong(nextSong);
   }
 }
