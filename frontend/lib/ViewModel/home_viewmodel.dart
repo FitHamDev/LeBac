@@ -36,7 +36,6 @@ class HomeViewModel extends ChangeNotifier {
   }
   
   Future<void> playRandomSong() async {
-    await stopMusic();
     int random = Random().nextInt(100);
 
     if (random < 70){
@@ -46,6 +45,5 @@ class HomeViewModel extends ChangeNotifier {
     } else {
       await playSong(songRepository.reneeLeGoon);
     }
-    notifyListeners();
   }
 }

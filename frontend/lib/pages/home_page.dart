@@ -19,7 +19,21 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _lastStyle = SongStyle.getStyle('stigma');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _precacheCovers();
+    });
     _autoPlayFirstSong();
+  }
+  
+  Future<void> _precacheCovers() async {
+    const covers = [
+      'assets/images/stigma_cover.png',
+      'assets/images/leblanc_cover.jpg',
+      'assets/images/legoon_cover.jpg',
+    ];
+    for (final path in covers) {
+      await precacheImage(AssetImage(path), context);
+    }
   }
   
   Future<void> _autoPlayFirstSong() async {
