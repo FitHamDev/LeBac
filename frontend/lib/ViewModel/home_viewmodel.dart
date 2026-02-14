@@ -4,38 +4,82 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:frontend/models/song.dart';
 import 'package:frontend/repository/song_repository.dart';
+import 'package:frontend/ViewModel/settings_viewmodel.dart';
 
 
 
 class HomeViewModel extends ChangeNotifier {
 
+  final SettingsViewModel settings;
   final player = AudioPlayer();
   final SongRepository songRepository = SongRepository();
 
   late Song _currentSong = songRepository.none;
   Song get currentSong => _currentSong;
   
-  bool _isOnCooldown = false;
-  bool get isOnCooldown => _isOnCooldown;
+  bool _isBlocked = false;
+  bool get isOnCooldown => _isBlocked;
+  
+  bool _isProcessing = false;
+  
   Timer? _cooldownTimer;
+  
+  late Song _nextSong = songRepository.leStigma;
+  
+  DateTime _lastSpecialSongStart = DateTime.fromMillisecondsSinceEpoch(0);
+
+  HomeViewModel(this.settings) {
+    _prequeueNextSong();
+  }
+  
+  void _prequeueNextSong() {
+    int totalWeight = 0;
+    for (var song in songRepository.allSongs) {
+      totalWeight += settings.getWeight(song.theme);
+    }
+    
+    if (totalWeight <= 0) {
+      _nextSong = songRepository.leStigma;
+      return;
+    }
+
+    int random = Random().nextInt(totalWeight);
+    int currentSum = 0;
+    
+    for (var song in songRepository.allSongs) {
+      currentSum += settings.getWeight(song.theme);
+      if (random < currentSum) {
+        _nextSong = song;
+        return;
+      }
+    }
+    
+    _nextSong = songRepository.leStigma;
+  }
 
   Future<void> playSong(Song song) async {
     try {
-      await player.stop(); 
       _currentSong = song;
-      notifyListeners();
-      unawaited(player.play(AssetSource(song.sound)));
       
-      // Start 3-second cooldown for LeBlanc or LeGoon
-      if (song.theme == 'leblanc' || song.theme == 'legoon') {
-        _isOnCooldown = true;
-        notifyListeners();
+      if (song.theme != 'stigma') {
+        _isBlocked = true;
+        _lastSpecialSongStart = DateTime.now(); // Mark start time
+        debugPrint("Cooldown started for ${song.name}");
+        
         _cooldownTimer?.cancel();
         _cooldownTimer = Timer(const Duration(seconds: 3), () {
-          _isOnCooldown = false;
+          debugPrint("Cooldown ended");
+          _isBlocked = false;
           notifyListeners();
         });
       }
+
+      notifyListeners();
+
+      // Force reset by awaiting stop first
+      await player.stop();
+      await player.play(AssetSource(song.sound));
+      
     } catch (e) {
       debugPrint("Error playing song: $e");
     }
@@ -57,17 +101,34 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
   
-  Future<void> playRandomSong() async {
-    int random = Random().nextInt(100);
-    Song nextSong;
-
-    if (random < 75){
-      nextSong = songRepository.solidStigma;
-    } else if (random < 95){
-      nextSong = songRepository.reneeLeBlanc;
-    } else {
-      nextSong = songRepository.reneeLeGoon;
+  Future<bool> playRandomSong() async {
+    if ((_currentSong.theme != 'stigma') &&
+        DateTime.now().difference(_lastSpecialSongStart).inMilliseconds < 3000) {
+       debugPrint("Hard block: Mandatory 3s listen time not met");
+       return false;
     }
-    await playSong(nextSong);
+
+    if (_isBlocked || _isProcessing) {
+      debugPrint("Blocked: cooldown=$_isBlocked, processing=$_isProcessing");
+      return false;
+    }
+    
+    _isProcessing = true;
+    
+    try {
+      final songToPlay = _nextSong;
+
+      if (songToPlay.theme != 'stigma') {
+        _isBlocked = true;
+        notifyListeners();
+      }
+      
+      _prequeueNextSong();
+      
+      await playSong(songToPlay);
+      return true;
+    } finally {
+      _isProcessing = false;
+    }
   }
 }

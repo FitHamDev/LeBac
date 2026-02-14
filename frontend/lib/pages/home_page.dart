@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:frontend/ViewModel/home_viewmodel.dart';
 import 'package:frontend/styles/theme_styles.dart';
 import 'package:frontend/widgets/record_button.dart';
@@ -12,75 +13,89 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  HomeViewModel viewModel = HomeViewModel();
-  late SongStyle _lastStyle;
-  
+  // Determine style based on current song or fallback to last known style
+  SongStyle _getDisplayStyle(HomeViewModel viewModel) {
+    if (viewModel.currentSong.coverImage.isNotEmpty) {
+      return SongStyle.getStyle(viewModel.currentSong.theme);
+    }
+    // Fallback: If we had a last style, we could persist it, but for simplicity
+    // we return the default (stigma) or whatever the "none" song implies.
+    // However, to keep the background from flashing to black when song ends:
+    return SongStyle.getStyle('stigma'); // Or keep global variable if persistence needed
+  }
+
   @override
   void initState() {
     super.initState();
-    _lastStyle = SongStyle.getStyle('stigma');
+    // Defer actions to next frame to ensure context is ready
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _precacheCovers();
+      _precacheAllCovers();
+      _tryAutoPlay();
     });
-    _autoPlayFirstSong();
   }
-  
-  Future<void> _precacheCovers() async {
-    const covers = [
-      'assets/images/stigma_cover.png',
-      'assets/images/leblanc_cover.jpg',
-      'assets/images/legoon_cover.jpg',
-    ];
-    for (final path in covers) {
-      await precacheImage(AssetImage(path), context);
+
+  void _precacheAllCovers() {
+    final viewModel = context.read<HomeViewModel>();
+    for (final song in viewModel.songRepository.allSongs) {
+      if (song.coverImage.isNotEmpty) {
+        precacheImage(AssetImage(song.coverImage), context);
+      }
     }
   }
   
-  Future<void> _autoPlayFirstSong() async {
+  void _tryAutoPlay() {
+    final viewModel = context.read<HomeViewModel>();
     if (viewModel.currentSong.coverImage.isEmpty) {
-      await viewModel.playRandomSong();
+      viewModel.playRandomSong();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: viewModel,
-      builder: (context, child) {
-        final currentStyle = SongStyle.getStyle(viewModel.currentSong.theme);
-        if (viewModel.currentSong.coverImage.isNotEmpty) {
-          _lastStyle = currentStyle;
-        }
-        final displayStyle = _lastStyle;
+    return Scaffold(
+      body: Consumer<HomeViewModel>(
+        builder: (context, viewModel, child) {
+          // Use current song style, fallback to Stigma if not playing
+          // Note: If you want to persist the LAST played style when stopped,
+          // you'd need a variable in ViewModel "lastPlayedTheme".
+          // For now, defaulting to Stigma (Standard) when stopped is cleaner.
+          final style = viewModel.currentSong.coverImage.isNotEmpty
+              ? SongStyle.getStyle(viewModel.currentSong.theme)
+              : SongStyle.getStyle('stigma');
 
-        return Scaffold(
-          body: Stack(
+          return Stack(
             children: [
+              // Background Gradient with smooth transition
               Positioned.fill(
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: displayStyle.gradientColors,
+                      colors: style.gradientColors,
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                     ),
                   ),
                 ),
               ),
+              
+              // Falling Icons
               Positioned.fill(
                 child: IconShower(iconPath: viewModel.currentSong.icon),
               ),
+              
+              // Center Button
               Center(
                 child: SpinningRecordButton(
                   viewModel: viewModel,
-                  style: currentStyle,
+                  style: style,
                 ),
               ),
             ],
-          )
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

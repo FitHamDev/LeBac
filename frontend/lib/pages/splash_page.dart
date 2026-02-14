@@ -26,28 +26,28 @@ class _SplashPageState extends State<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 252, 255, 97),
+      backgroundColor: const Color(0xFF00051E),
       body: Center(
         child: Container(
-          width: 150,
-          height: 150,
+          width: 200,
+          height: 200,
           decoration: BoxDecoration(
-            color: Colors.white.withAlpha((0.9 * 255).toInt()),
-            borderRadius: BorderRadius.circular(24),
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(40),
             boxShadow: const [
               BoxShadow(
-                color: Colors.black26,
-                blurRadius: 16,
-                offset: Offset(0, 10),
+                color: Color(0xFF00ccff),
+                blurRadius: 30,
+                offset: Offset(0, 0),
               ),
             ],
           ),
-          padding: const EdgeInsets.all(4),
+          padding: const EdgeInsets.all(0),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(40),
             child: Image.asset(
               'assets/icons/app_icon.png',
-              fit: BoxFit.contain,
+              fit: BoxFit.cover,
             ),
           ),
         ),

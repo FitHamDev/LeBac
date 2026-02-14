@@ -14,12 +14,13 @@ class SongStyle {
   });
 
   static const defaultStyle = SongStyle(
-    backgroundColor: Color(0xFFFCFF61), 
-      gradientColors: [
-        Color(0xFFFCFF61), 
-        Color(0xFFF4C34F), 
-      ],
-    buttonColor: Color(0xFFFFAA00), 
+    backgroundColor: Color(0xFF00051E), 
+    gradientColors: [
+      Color(0xFF00051E), 
+      Color(0xFF2B0050), 
+    ],
+    buttonColor: Color(0xFF651FFF), 
+    textColor: Colors.white,
   );
 
   static final Map<String, SongStyle> _styles = {
@@ -48,6 +49,15 @@ class SongStyle {
         Color(0xFF003459), 
       ],
       buttonColor: Color(0xFF00F5D4), 
+      textColor: Colors.white,
+    ),
+    'leschnable': const SongStyle(
+      backgroundColor: Color(0xFF000200), // Pitch black green
+      gradientColors: [
+        Color(0xFF005C00), // Rich Green (Top)
+        Color(0xFF000500), // Abyssal Green (Bottom)
+      ],
+      buttonColor: Color(0xFF00FF22), // High-vis Neon Grass Green
       textColor: Colors.white,
     ),
       };
