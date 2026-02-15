@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/ViewModel/settings_viewmodel.dart';
-import 'package:frontend/repository/song_repository.dart';
 import 'package:frontend/styles/theme_styles.dart';
 import 'package:frontend/models/song.dart';
 
@@ -45,7 +44,7 @@ class SettingsPage extends StatelessWidget {
                 return const Center(child: CircularProgressIndicator(color: Colors.white));
               }
 
-              final songs = SongRepository().allSongs;
+              final songs = viewModel.songs;
 
               return Column(
                 children: [
@@ -118,9 +117,7 @@ class _SongSettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final weight = viewModel.getWeight(song.theme);
     final style = SongStyle.getStyle(song.theme);
-
-    // Calculate slider value logic
-    double sliderValue = _calculateSliderValue(weight);
+    final sliderValue = SettingsViewModel.sliderValueForWeight(weight);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
@@ -173,15 +170,6 @@ class _SongSettingsCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  double _calculateSliderValue(int weight) {
-    if (SettingsViewModel.allowedValues.contains(weight)) {
-      return SettingsViewModel.allowedValues.indexOf(weight).toDouble();
-    }
-    int closest = SettingsViewModel.allowedValues.reduce((a, b) => 
-      (weight - a).abs() < (weight - b).abs() ? a : b);
-    return SettingsViewModel.allowedValues.indexOf(closest).toDouble();
   }
 
   Widget _buildHeader(int weight) {

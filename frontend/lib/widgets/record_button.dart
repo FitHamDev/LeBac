@@ -62,13 +62,16 @@ class _SpinningRecordButtonState extends State<SpinningRecordButton> with Ticker
 
   @override
   Widget build(BuildContext context) {
-    final isPlaying = widget.viewModel.currentSong.coverImage.isNotEmpty;
+    final currentSong = widget.viewModel.currentSong;
+    final isPlaying = currentSong.coverImage.isNotEmpty;
     final isOnCooldown = widget.viewModel.isOnCooldown;
+    final coverImage = isPlaying ? currentSong.coverImage : null;
 
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        if (isPlaying)
+    return RepaintBoundary(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (isPlaying)
           AnimatedBuilder(
             animation: _rippleController,
             builder: (context, child) {
@@ -97,13 +100,12 @@ class _SpinningRecordButtonState extends State<SpinningRecordButton> with Ticker
           
         GestureDetector(
           onTap: isOnCooldown ? null : () {
-            if (widget.viewModel.isOnCooldown) return;
-            
-            // Toggle direction immediately
+            // Toggle direction immediately so the next frame paints the flip
             _direction *= -1;
-            
-            // Postpone heavy work to next frame to ensure animation doesn't stutter
-             Future.microtask(() => widget.viewModel.playRandomSong());
+            // Defer heavy work until after the next frame so rotation flip is visible first (fixes Android pause)
+            SchedulerBinding.instance.addPostFrameCallback((_) {
+              widget.viewModel.playRandomSong();
+            });
           },
           child: ValueListenableBuilder<double>(
               valueListenable: _rotationNotifier,
@@ -125,15 +127,14 @@ class _SpinningRecordButtonState extends State<SpinningRecordButton> with Ticker
                   ],
                 ),
                 child: CircleAvatar(
-                  backgroundImage: widget.viewModel.currentSong.coverImage.isNotEmpty 
-                      ? AssetImage(widget.viewModel.currentSong.coverImage)
-                      : null,
-                  backgroundColor: Colors.transparent, 
+                  backgroundImage: coverImage != null ? AssetImage(coverImage) : null,
+                  backgroundColor: Colors.transparent,
                 ),
               ),
             ),
         ),
-      ],
+        ],
+      ),
     );
   }
 }

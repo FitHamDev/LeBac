@@ -28,32 +28,31 @@ class HomeViewModel extends ChangeNotifier {
   
   DateTime _lastSpecialSongStart = DateTime.fromMillisecondsSinceEpoch(0);
 
+  static final Random _random = Random();
+
   HomeViewModel(this.settings) {
     _prequeueNextSong();
   }
-  
+
   void _prequeueNextSong() {
+    final songs = songRepository.allSongs;
     int totalWeight = 0;
-    for (var song in songRepository.allSongs) {
+    for (var song in songs) {
       totalWeight += settings.getWeight(song.theme);
     }
-    
     if (totalWeight <= 0) {
       _nextSong = songRepository.leStigma;
       return;
     }
-
-    int random = Random().nextInt(totalWeight);
+    int random = _random.nextInt(totalWeight);
     int currentSum = 0;
-    
-    for (var song in songRepository.allSongs) {
+    for (var song in songs) {
       currentSum += settings.getWeight(song.theme);
       if (random < currentSum) {
         _nextSong = song;
         return;
       }
     }
-    
     _nextSong = songRepository.leStigma;
   }
 

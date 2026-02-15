@@ -13,38 +13,46 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Determine style based on current song or fallback to last known style
-  SongStyle _getDisplayStyle(HomeViewModel viewModel) {
-    if (viewModel.currentSong.coverImage.isNotEmpty) {
-      return SongStyle.getStyle(viewModel.currentSong.theme);
-    }
-    // Fallback: If we had a last style, we could persist it, but for simplicity
-    // we return the default (stigma) or whatever the "none" song implies.
-    // However, to keep the background from flashing to black when song ends:
-    return SongStyle.getStyle('stigma'); // Or keep global variable if persistence needed
-  }
 
   @override
   void initState() {
     super.initState();
     // Defer actions to next frame to ensure context is ready
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _precacheAllCovers();
-      _tryAutoPlay();
+      final viewModel = context.read<HomeViewModel>();
+      _precachePriorityCovers(viewModel);
+      _precacheRemainingCoversLater(viewModel);
+      _tryAutoPlay(viewModel);
     });
   }
 
-  void _precacheAllCovers() {
-    final viewModel = context.read<HomeViewModel>();
-    for (final song in viewModel.songRepository.allSongs) {
-      if (song.coverImage.isNotEmpty) {
-        precacheImage(AssetImage(song.coverImage), context);
-      }
+  /// Precache only current + default cover so the first frame stays light.
+  void _precachePriorityCovers(HomeViewModel viewModel) {
+    final repo = viewModel.songRepository;
+    if (viewModel.currentSong.coverImage.isNotEmpty) {
+      precacheImage(AssetImage(viewModel.currentSong.coverImage), context);
+    }
+    if (repo.leStigma.coverImage.isNotEmpty) {
+      precacheImage(AssetImage(repo.leStigma.coverImage), context);
     }
   }
-  
-  void _tryAutoPlay() {
-    final viewModel = context.read<HomeViewModel>();
+
+  /// Precache the rest of the covers after a short delay so UI stays responsive.
+  void _precacheRemainingCoversLater(HomeViewModel viewModel) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        for (final song in viewModel.songRepository.allSongs) {
+          if (song.coverImage.isEmpty) continue;
+          if (song.coverImage == viewModel.currentSong.coverImage) continue;
+          if (song.coverImage == viewModel.songRepository.leStigma.coverImage) continue;
+          precacheImage(AssetImage(song.coverImage), context);
+        }
+      });
+    });
+  }
+
+  void _tryAutoPlay(HomeViewModel viewModel) {
     if (viewModel.currentSong.coverImage.isEmpty) {
       viewModel.playRandomSong();
     }
@@ -55,17 +63,13 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       body: Consumer<HomeViewModel>(
         builder: (context, viewModel, child) {
-          // Use current song style, fallback to Stigma if not playing
-          // Note: If you want to persist the LAST played style when stopped,
-          // you'd need a variable in ViewModel "lastPlayedTheme".
-          // For now, defaulting to Stigma (Standard) when stopped is cleaner.
-          final style = viewModel.currentSong.coverImage.isNotEmpty
-              ? SongStyle.getStyle(viewModel.currentSong.theme)
-              : SongStyle.getStyle('stigma');
+          final theme = viewModel.currentSong.coverImage.isNotEmpty
+              ? viewModel.currentSong.theme
+              : 'stigma';
+          final style = SongStyle.getStyle(theme);
 
           return Stack(
             children: [
-              // Background Gradient with smooth transition
               Positioned.fill(
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 500),

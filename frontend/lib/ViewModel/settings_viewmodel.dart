@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:frontend/models/song.dart';
 import 'package:frontend/repository/song_repository.dart';
 
 class SettingsViewModel extends ChangeNotifier {
   final SongRepository _songRepository = SongRepository();
+  List<Song> get songs => _songRepository.allSongs;
+
   Map<String, int> _songWeights = {
       'stigma': 75,
       'leblanc': 15,
@@ -105,8 +108,22 @@ class SettingsViewModel extends ChangeNotifier {
   }
   
   static const List<int> allowedValues = [
-    0, 1, 2, 3, 4, 5, 
-    10, 15, 20, 25, 30, 35, 40, 45, 50, 
+    0, 1, 2, 3, 4, 5,
+    10, 15, 20, 25, 30, 35, 40, 45, 50,
     55, 60, 65, 70, 75, 80, 85, 90, 95, 100
   ];
+
+  static final Map<int, int> _weightToSliderIndex = {
+    for (var i = 0; i < allowedValues.length; i++) allowedValues[i]: i
+  };
+
+  /// O(1) slider index for a weight; uses closest allowed value if not exact.
+  static double sliderValueForWeight(int weight) {
+    final index = _weightToSliderIndex[weight];
+    if (index != null) return index.toDouble();
+    final closest = allowedValues.reduce(
+      (a, b) => (weight - a).abs() < (weight - b).abs() ? a : b,
+    );
+    return _weightToSliderIndex[closest]!.toDouble();
+  }
 }

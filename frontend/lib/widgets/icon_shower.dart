@@ -55,11 +55,12 @@ class _IconShowerState extends State<IconShower> with SingleTickerProviderStateM
       animation: _controller,
       builder: (context, child) {
         _updateIcons();
+        final size = MediaQuery.sizeOf(context);
         return Stack(
           children: _icons.map((icon) {
             return Positioned(
-              left: icon.x * MediaQuery.of(context).size.width,
-              top: icon.y * MediaQuery.of(context).size.height,
+              left: icon.x * size.width,
+              top: icon.y * size.height,
               child: Transform.rotate(
                 angle: icon.rotation,
                 child: Image.asset(
@@ -90,26 +91,5 @@ class _FallingIcon {
     required this.size,
     required this.rotation,
     required this.rotationSpeed,
-  });
-}
-
-
-class FallingIcon {
-  double x;
-  double y;
-  double speed;
-  double size;
-  double rotation;
-  double rotationSpeed;
-  String iconPath;
-
-  FallingIcon({
-    required this.x,
-    required this.y,
-    required this.speed,
-    required this.size,
-    required this.rotation,
-    required this.rotationSpeed,
-    required this.iconPath,
   });
 }
