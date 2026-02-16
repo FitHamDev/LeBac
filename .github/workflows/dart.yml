@@ -34,11 +34,3 @@ jobs:
       - name: Zip output
         run: zip -qq -r -9 FlutterIpaExport.ipa Payload
         working-directory: frontend/build/ios/iphoneos
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v1.0
-          name: Release v1.0
-          body: This is first release
-          files: frontend/build/ios/iphoneos/FlutterIpaExport.ipa
