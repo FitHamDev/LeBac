@@ -34,3 +34,9 @@ jobs:
       - name: Zip output
         run: zip -qq -r -9 FlutterIpaExport.ipa Payload
         working-directory: frontend/build/ios/iphoneos
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-ipa
+          path: frontend/build/ios/iphoneos/FlutterIpaExport.ipa
