@@ -1,5 +1,5 @@
 {
-  "installCommand": "git clone https://github.com/flutter/flutter.git -b stable --depth 1 && flutter config --enable-web",
+  "installCommand": "git clone https://github.com/flutter/flutter.git -b stable --depth 1 && export PATH=\"$PATH:$(pwd)/flutter/bin\" && flutter config --enable-web",
   "buildCommand": "export PATH=\"$PATH:$(pwd)/flutter/bin\" && cd frontend && flutter build web --release",
   "outputDirectory": "frontend/build/web",
   "rewrites": [
